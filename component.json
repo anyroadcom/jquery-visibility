@@ -1,0 +1,12 @@
+{
+    "name" : "jquery-visibility",
+    "version" : "1.0.7-1",
+    "dependencies": {
+      "components/jquery": "^1.0.0"
+    },
+
+    "main" : "jquery-visibility.js",
+    "scripts": [
+      "jquery-visibility.js"
+    ]
+}
