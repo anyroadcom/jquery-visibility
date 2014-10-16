@@ -1,55 +1,66 @@
 /*! http://mths.be/visibility v1.0.7 by @mathias | MIT license */
-;(function(window, document, $, undefined) {
+;(function (factory) {
+    if (typeof define === 'function' && define.amd) {
+        // AMD. Register as an anonymous module.
+        define(['jquery'], factory);
+    } else if (typeof exports === 'object') {
+        // Node/CommonJS
+        factory(require('jquery'));
+    } else {
+        // Browser globals
+        factory(window.jQuery);
+    }
+}(function (jQuery) {
+  (function(window, document, $, undefined) {
+    var prefix;
+    var property;
+    // In Opera, `'onfocusin' in document == true`, hence the extra `hasFocus` check to detect IE-like behavior
+    var eventName = 'onfocusin' in document && 'hasFocus' in document
+      ? 'focusin focusout'
+      : 'focus blur';
+    var prefixes = ['webkit', 'o', 'ms', 'moz', ''];
+    var $support = $.support;
+    var $event = $.event;
 
-	var prefix;
-	var property;
-	// In Opera, `'onfocusin' in document == true`, hence the extra `hasFocus` check to detect IE-like behavior
-	var eventName = 'onfocusin' in document && 'hasFocus' in document
-		? 'focusin focusout'
-		: 'focus blur';
-	var prefixes = ['webkit', 'o', 'ms', 'moz', ''];
-	var $support = $.support;
-	var $event = $.event;
+    while ((prefix = prefixes.pop()) != undefined) {
+      property = (prefix ? prefix + 'H': 'h') + 'idden';
+      if ($support.pageVisibility = typeof document[property] == 'boolean') {
+        eventName = prefix + 'visibilitychange';
+        break;
+      }
+    }
 
-	while ((prefix = prefixes.pop()) != undefined) {
-		property = (prefix ? prefix + 'H': 'h') + 'idden';
-		if ($support.pageVisibility = typeof document[property] == 'boolean') {
-			eventName = prefix + 'visibilitychange';
-			break;
-		}
-	}
+    $(/blur$/.test(eventName) ? window : document).on(eventName, function(event) {
+      var type = event.type;
+      var originalEvent = event.originalEvent;
 
-	$(/blur$/.test(eventName) ? window : document).on(eventName, function(event) {
-		var type = event.type;
-		var originalEvent = event.originalEvent;
+      // Avoid errors from triggered native events for which `originalEvent` is
+      // not available.
+      if (!originalEvent) {
+        return;
+      }
 
-		// Avoid errors from triggered native events for which `originalEvent` is
-		// not available.
-		if (!originalEvent) {
-			return;
-		}
+      var toElement = originalEvent.toElement;
 
-		var toElement = originalEvent.toElement;
-
-		// If it’s a `{focusin,focusout}` event (IE), `fromElement` and `toElement`
-		// should both be `null` or `undefined`; else, the page visibility hasn’t
-		// changed, but the user just clicked somewhere in the doc. In IE9, we need
-		// to check the `relatedTarget` property instead.
-		if (
-			!/^focus./.test(type) || (
-				toElement == undefined &&
-				originalEvent.fromElement == undefined &&
-				originalEvent.relatedTarget == undefined
-			)
-		) {
-			$event.trigger(
-				(
-					property && document[property] || /^(?:blur|focusout)$/.test(type)
-						? 'hide'
-						: 'show'
-				) + '.visibility'
-			);
-		}
-	});
-
-}(this, document, jQuery));
+      // If it’s a `{focusin,focusout}` event (IE), `fromElement` and `toElement`
+      // should both be `null` or `undefined`; else, the page visibility hasn’t
+      // changed, but the user just clicked somewhere in the doc. In IE9, we need
+      // to check the `relatedTarget` property instead.
+      if (
+        !/^focus./.test(type) || (
+          toElement == undefined &&
+          originalEvent.fromElement == undefined &&
+          originalEvent.relatedTarget == undefined
+        )
+      ) {
+        $event.trigger(
+          (
+            property && document[property] || /^(?:blur|focusout)$/.test(type)
+              ? 'hide'
+              : 'show'
+          ) + '.visibility'
+        );
+      }
+    });
+  }(this, document, jQuery));
+}));
